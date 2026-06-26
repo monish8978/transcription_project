@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  fastapi:
+    build: .
+    ports:
+      - "8023:8023"
+    env_file:
+      - .env
+    volumes:
+      - /var/www/html:/var/www/html   # 👈 ADD THIS
+    restart: always
+
+  celery_worker:
+    build: .
+    command: celery -A celery_app.celery worker --loglevel=info --concurrency=2
+    env_file:
+      - .env
+    volumes:
+      - /var/www/html:/var/www/html   # 👈 ADD THIS
+    restart: always
