@@ -272,9 +272,15 @@ def format_transcript(dg_response):
 @celery.task(bind=True, max_retries=3)
 def transcribe_task(self, file_url, file_path):
     try:
-        log.info("FILE PATH RECEIVED:", file_path)
+        log.info("FILE PATH RECEIVED: %s", file_path)
 
-        if not file_path or not os.path.exists(file_path):
+        if not file_url and not file_path:
+            return {
+                "status": "FAILED",
+                "error": "Provide either file_url or file_path"
+            }
+        
+        if file_path and not os.path.exists(file_path):
             return {
                 "status": "FAILED",
                 "error": f"File not found: {file_path}"
@@ -282,7 +288,7 @@ def transcribe_task(self, file_url, file_path):
 
         # Deepgram call
         dg_json = run_async(process_audio, file_url, file_path)
-        log.info(dg_json)
+        # log.info(dg_json)
 
         # Format transcript
         transcript = format_transcript(dg_json)
@@ -296,3 +302,12 @@ def transcribe_task(self, file_url, file_path):
     except Exception as e:
         print("TASK ERROR:", str(e))
         raise self.retry(exc=e, countdown=10)
+        
+    finally:
+        # अगर फाइल 'uploads' फोल्डर की है, तो प्रोसेस होने के बाद उसे डिलीट कर दें
+        if file_path and "/var/www/html/uploads/" in file_path and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                log.info("Deleted temp uploaded file: %s", file_path)
+            except Exception as err:
+                log.error("Failed to delete temp file: %s", err)

@@ -1,23 +1,26 @@
-# Environment files
+# Environment
 .env
 .env.*
+!.env.example
+
+# Virtual Environment
+.venv/
+venv/
+env/
 
 # Python
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual environment
-.venv/
-venv/
-env/
-
 # Logs
 *.log
+logs/
 
-# IDE files
+# IDE
 .vscode/
 .idea/
 
-# OS files
+# OS
 .DS_Store
+Thumbs.db
