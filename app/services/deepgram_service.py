@@ -2,10 +2,8 @@ import httpx
 import os
 import asyncio
 from fastapi import HTTPException
-from app.config import DEEPGRAM_API_KEY
+from app.config import DEEPGRAM_API_KEY, DEEPGRAM_URL, DEEPGRAM_PARAMS
 from app.logger import log
-
-DEEPGRAM_URL = "https://api.deepgram.com/v1/listen"
 
 
 async def call_deepgram(headers, params, retries=3, **kwargs):
@@ -36,20 +34,10 @@ async def call_deepgram(headers, params, retries=3, **kwargs):
 async def process_audio(file_url=None, file_path=None):
     headers = {"Authorization": f"Token {DEEPGRAM_API_KEY}"}
 
-    params = {
-        "punctuate": "true",
-        "diarize": "true",
-        "model": "nova-3",
-        "smart_format": "true",
-        "utterances": "true",
-        "language": "hi",
-        "multichannel": "true"
-    }
-
     # URL case
     if file_url:
         headers["Content-Type"] = "application/json"
-        return await call_deepgram(headers, params, json={"url": file_url})
+        return await call_deepgram(headers, DEEPGRAM_PARAMS, json={"url": file_url})
 
     # FILE case
     if file_path:
@@ -61,6 +49,6 @@ async def process_audio(file_url=None, file_path=None):
         with open(file_path, "rb") as f:
             audio_bytes = f.read()
 
-        return await call_deepgram(headers, params, content=audio_bytes)
+        return await call_deepgram(headers, DEEPGRAM_PARAMS, content=audio_bytes)
 
     raise HTTPException(400, "Provide file_url or file_path")
